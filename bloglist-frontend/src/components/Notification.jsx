@@ -1,5 +1,5 @@
 const Notification = ({ notification, error }) => {
-    if (notification, error === null) {
+    if (notification === "" && error === "") {
       return null
     }
     if (error) {
@@ -18,4 +18,4 @@ const Notification = ({ notification, error }) => {
   }
 }
 
-  export default Notification
+export default Notification
