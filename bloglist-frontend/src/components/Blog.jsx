@@ -1,9 +1,7 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, props }) => {
+const Blog = ({ blog }) => {
   const [visible, setVisible] = useState(false)
-  const hideWhenVisible = { display: visible ? 'none' : '' }
-  const showWhenVisible = { display: visible ? '' : 'none' }
   
   const blogStyle = {
     paddingTop: 10,
@@ -18,19 +16,21 @@ const Blog = ({ blog, props }) => {
   }
 
   return (
-
     <div style={blogStyle}>
       <div>
         {blog.title} {blog.author}
+        <button onClick={toggleVisibility}>
+          {visible ? 'hide' : 'show'}
+        </button>
       </div>
-      <div style={hideWhenVisible}>
-      <button onClick={toggleVisibility}>{props.buttonLabel}</button>
+      {visible && (
+        <div>
+          <p>{blog.url}</p>
+          <p>Likes: {blog.likes} <button>like</button></p>
+        </div>
+      )}
     </div>
-    <div style={showWhenVisible}>
-      {props.children}
-      <button onClick={toggleVisibility}>hide</button>
-    </div>
-  </div>
-)}
+  );
+}
 
 export default Blog

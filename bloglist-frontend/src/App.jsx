@@ -9,9 +9,6 @@ import BlogForm from './components/BlogForm'
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [notificationMessage, setNotificationMessage] = useState('')
-  const [newTitle, setnewTitle] = useState('')
-  const [newAuthor, setnewAuthor] = useState('')
-  const [newUrl, setnewUrl] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -32,44 +29,23 @@ const App = () => {
     }
   }, [])
 
-  const createBlog = async (event) => {
-    event.preventDefault()
+  const addBlog = async (blogObject) => {
     
     try {
-      const blogObject = {
-      title: newTitle,
-      author: newAuthor,
-      url: newUrl,
-    }
-  
-    const returnedBlog = await blogService.create(blogObject)
-    setBlogs(blogs.concat(returnedBlog))
-    setnewTitle('')
-    setnewAuthor('')
-    setnewUrl('')
-    setNotificationMessage(`a new blog ${returnedBlog.title} added`);
-    setTimeout(() => {
-      setNotificationMessage(null);
-    }, 5000);
+      const returnedBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(returnedBlog))
+      setNotificationMessage(`a new blog ${returnedBlog.title} added`);
+      setTimeout(() => {
+        setNotificationMessage(null);
+      }, 5000);
   } catch (error) {
-    setErrorMessage(error)
+    setErrorMessage(typeof(error) === 'object' ? error.message : error) // if error = object error.message (string), otherwise error = object
     setTimeout(() => {
       setErrorMessage(null)
     }, 5000)
   }
   }
   
-  const handleBlogChange = (event) => {
-    const { name, value } = event.target
-
-    if (name === 'title') {
-      setnewTitle(value)
-    } else if (name === 'author') {
-      setnewAuthor(value)
-    } else if (name === 'url') {
-      setnewUrl(value)
-    }
-  };
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -96,19 +72,7 @@ const App = () => {
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null);
     console.log("Logout clicked");
-}
-
-  const blogForm = () => (
-    <form onSubmit={createBlog}>
-      <input
-        newTitle={newTitle}
-        newAuthor={newAuthor}
-        newUrl={newUrl}
-        onChange={handleBlogChange}
-      />
-      <button type="submit">save</button>
-    </form>  
-  )
+  }
 
   const loginForm = () => (
     <div>
@@ -146,22 +110,13 @@ const App = () => {
       <p>
         {user.name} logged in <button onClick={handleLogout}>logout</button>
       </p>
-      {blogForm()}
       <Togglable buttonLabel="create new blog">
         <h2>create new</h2>
-        <BlogForm
-          onSubmit={createBlog}
-          newTitle={newTitle}
-          newAuthor={newAuthor}
-          newUrl={newUrl}
-          handleChange={handleBlogChange}
-        />
+        <BlogForm createBlog={addBlog} />
       </Togglable>
-      {blogs.map(blog =>
-        <Blog buttonLabel="show" >
-            key={blog.id} blog={blog}
-        </Blog>
-      )}
+      {blogs.map((blog) => (
+        <Blog key={blog.id} blog={blog} />
+      ))}
     </div>
     }
     </div>
