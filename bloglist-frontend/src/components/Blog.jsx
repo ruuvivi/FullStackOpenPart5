@@ -11,11 +11,11 @@ const Blog = ({ blog, updateBlogLike, deleteBlog, user }) => {
     borderWidth: 1,
     marginBottom: 5
   }
-
+  console.log(user)
+  console.log(blog)
   const toggleVisibility = () => {
     setVisible(!visible)
   }
-  console.log(blog)
   return (
     <li className='blog'>
       <div style={blogStyle}>
