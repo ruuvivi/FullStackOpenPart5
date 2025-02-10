@@ -35,7 +35,8 @@ const App = () => {
     try {
       blogFormRef.current.toggleVisibility()
       const returnedBlog = await blogService.create(blogObject)
-      setBlogs(blogs.concat(returnedBlog))
+      const blogs = await blogService.getAll()
+      setBlogs( blogs )
       setNotificationMessage(`a new blog ${returnedBlog.title} added`)
       setTimeout(() => {
         setNotificationMessage(null)
@@ -87,7 +88,6 @@ const App = () => {
   const deleteBlog = async (blogObject) => {
     if (window.confirm(`Remove blog ${blogObject.title} by ${blogObject.author}`)) {
       await blogService.deleteBlog(blogObject)
-      console.log(blogObject)
       const blogs = await blogService.getAll()
       setBlogs( blogs )
     }
@@ -121,7 +121,6 @@ const App = () => {
       </form>
     </div>
   )
-  console.log(blogs.sort((a,b) => a.likes - b.likes))
   return (
     <div>
       <Notification notification={notificationMessage} error={errorMessage}/>

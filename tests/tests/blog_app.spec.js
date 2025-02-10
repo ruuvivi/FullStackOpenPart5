@@ -11,6 +11,44 @@ describe('Blog app', () => {
           }
         })
     
+        await request.post('http://localhost:3003/api/users', {
+            data: {
+                name: 'Kakkos Testaaja',
+                username: 'testi2',
+                password: 'testi2salainen'
+            }
+            })
+            const response = await request.post('http://localhost:3003/api/login', {
+                data: {
+                    "username": "testi2",
+                    "password": "testi2salainen"
+                }
+            })
+            const data = await response.json()
+    
+        await request.post('http://localhost:3003/api/blogs', {
+            data: {
+                title: 'testi2Title',
+                author: 'testi2Author',
+                url: 'testi2salainen',
+                likes: 77,
+            },
+            headers: {
+                authorization: 'Bearer ' + data.token
+            }
+        })
+        await request.post('http://localhost:3003/api/blogs', {
+            data: {
+                title: 'testi3Title',
+                author: 'testi2Author',
+                url: 'testi2salainen',
+                likes: 11,
+            },
+            headers: {
+                authorization: 'Bearer ' + data.token
+            }
+        })
+
         await page.goto('http://localhost:5173')
       })
 
@@ -43,8 +81,7 @@ describe('Blog app', () => {
         })
     })
     describe('When logged in', () => {
-        beforeEach(async ({ page }) => {
-
+        beforeEach(async ({ page, request }) => {
             await page.getByTestId('username').fill('testi')
             await page.getByTestId('password').fill('testisalainen')
 
@@ -61,8 +98,9 @@ describe('Blog app', () => {
 
             await page.getByRole('button', { name: 'create' }).click()
             await expect(page.getByText('a new blog testiTitle added')).toBeVisible()
-            expect(page.locator('.blog')).toContainText('testiTitle')
-            expect(page.locator('.blog')).toContainText('testi')
+            const listElement = page.getByTestId('testiTitle')
+            expect(listElement).toContainText('testiTitle')
+            expect(listElement).toContainText('testiAuthor')
         })
         test('a blog can be liked', async ({ page }) => {
         
@@ -74,13 +112,14 @@ describe('Blog app', () => {
 
             await page.getByRole('button', { name: 'create' }).click()
             await expect(page.getByText('a new blog testiTitle added')).toBeVisible()
-            expect(page.locator('.blog')).toContainText('testiTitle')
-            expect(page.locator('.blog')).toContainText('testiAuthor')
+            const listElement = page.getByTestId('testiTitle')
+            expect(listElement).toContainText('testiTitle')
+            expect(listElement).toContainText('testiAuthor')
 
-            await page.getByRole('button', { name: 'show' }).click()
-            expect(page.locator('.blog')).toContainText('Likes: 0')
-            await page.getByRole('button', { name: 'like' }).click()
-            expect(page.locator('.blog')).toContainText('Likes: 1')
+            await listElement.getByRole('button', { name: 'show' }).click()
+            expect(listElement).toContainText('Likes: 0')
+            await listElement.getByRole('button', { name: 'like' }).click()
+            expect(listElement).toContainText('Likes: 1')
         })
         test('a blog can be deleted', async ({ page }) => {
         
@@ -92,13 +131,36 @@ describe('Blog app', () => {
 
             await page.getByRole('button', { name: 'create' }).click()
             await expect(page.getByText('a new blog testiTitle added')).toBeVisible()
-            expect(page.locator('.blog')).toContainText('testiTitle')
-            expect(page.locator('.blog')).toContainText('testiAuthor')
+            const listElement = page.getByTestId('testiTitle')
+            expect(listElement).toContainText('testiTitle')
+            expect(listElement).toContainText('testiAuthor')
 
-            await page.getByRole('button', { name: 'show' }).click()
+            await listElement.getByRole('button', { name: 'show' }).click()
             page.on('dialog', dialog => dialog.accept())
-            await page.getByRole('button', { name: 'delete' }).click()
-            expect(page.locator('.blog')).not.toContainText('testiAuthor')
+            await listElement.getByRole('button', { name: 'delete' }).click()
+            expect(listElement).not.toBeVisible()
+        })
+        test('delete button is seen only by user who has created it', async ({ page }) => {
+
+            const listElement = page.getByTestId('testi2Title')
+            expect(listElement).toContainText('testi2Title')
+            expect(listElement).toContainText('testi2Author')
+
+            await listElement.getByRole('button', { name: 'show' }).click()
+            expect(listElement).not.toContainText("delete")
+        })
+        test('blogs are arranged in the order according to the likes, the blog with the most likes first', async ({ page, request }) => {
+            await page.getByRole('button', { name: 'create a new blog' }).click()
+
+            await page.getByTestId('title').fill('testiTitle')
+            await page.getByTestId('author').fill('testiAuthor')
+            await page.getByTestId('url').fill('testiUrl')
+
+            await page.getByRole('button', { name: 'create' }).click()
+            await expect(page.getByText('a new blog testiTitle added')).toBeVisible()
+            const nameList = await page.locator('li');
+            const expectedNamesAscending = ['testi2Title', 'testi3Title', 'testiTitle'];
+            await expect(nameList).toContainText(expectedNamesAscending);
         })
     })
 })
